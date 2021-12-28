@@ -1,0 +1,9 @@
+cn/reactnative/modules/share/BuildConfig.java
+ cn.reactnative.modules.share.BuildConfig
+cn/reactnative/modules/share/RNQQLibFileProvider.java
+ cn.reactnative.modules.share.RNQQLibFileProvider
+cn/reactnative/modules/share/AppShareModule.java
+ cn.reactnative.modules.share.AppShareModule
+ cn.reactnative.modules.share.AppShareModule$1
+cn/reactnative/modules/share/AppSharePackage.java
+ cn.reactnative.modules.share.AppSharePackage

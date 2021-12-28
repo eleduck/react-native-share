@@ -1,0 +1,29 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+        manifestPlaceholders = [QQ_APPID: '${QQ_APPID}']
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets.main {
+        jniLibs.srcDirs = ['libs']
+    }
+}
+
+dependencies {
+    implementation 'com.facebook.react:react-native:+'
+    api files('libs/core-4.3.1-openDefaultRelease.aar')
+    api files('libs/open_sdk_3.5.4.11_r3f56456_lite.jar')
+}
