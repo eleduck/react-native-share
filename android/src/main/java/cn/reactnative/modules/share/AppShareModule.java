@@ -62,12 +62,12 @@ public class AppShareModule extends ReactContextBaseJavaModule{
     if (!appInfo.metaData.containsKey("WB_APPID")) {
       throw new Error("meta-data WB_APPID not found in AndroidManifest.xml");
     }
-    this.weiboAppId = appInfo.metaData.get("WB_APPID").toString();
+    this.weiboAppId = appInfo.metaData.get("WB_APPID").toString().replace("wb", "");
 
     if (!appInfo.metaData.containsKey("QQ_APPID")) {
       throw new Error("meta-data QQ_APPID not found in AndroidManifest.xml");
     }
-    this.qqAppId = appInfo.metaData.get("QQ_APPID").toString();
+    this.qqAppId = appInfo.metaData.get("QQ_APPID").toString().replace("qq", "");
   }
 
   @Override
