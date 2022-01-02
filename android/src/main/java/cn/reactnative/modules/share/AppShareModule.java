@@ -9,8 +9,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 
-import androidx.core.content.ContextCompat;
-
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -22,10 +20,14 @@ import com.sina.weibo.sdk.api.WebpageObject;
 import com.sina.weibo.sdk.api.WeiboMultiMessage;
 import com.sina.weibo.sdk.auth.AuthInfo;
 
-import com.sina.weibo.sdk.WbSdk;
-import com.sina.weibo.sdk.share.WbShareHandler;
+import com.sina.weibo.sdk.openapi.IWBAPI;
+import com.sina.weibo.sdk.openapi.SdkListener;
+import com.sina.weibo.sdk.openapi.WBAPIFactory;
 import com.tencent.connect.share.QQShare;
 import com.tencent.tauth.Tencent;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Date;
 
 
@@ -39,8 +41,7 @@ public class AppShareModule extends ReactContextBaseJavaModule{
   private String weiboAppId;
   private Tencent api;
   private String qqAppId;
-
-  private WbShareHandler shareHandler;
+  private IWBAPI mWBAPI;
 
   private static final String RCTSharePlatform = "platform";
   private static final String RCTShareTitle = "title";
@@ -80,7 +81,7 @@ public class AppShareModule extends ReactContextBaseJavaModule{
   public void onCatalystInstanceDestroy() {
     super.onCatalystInstanceDestroy();
     gModule = null;
-    shareHandler = null;
+    mWBAPI = null;
   }
 
   @Override
@@ -89,13 +90,25 @@ public class AppShareModule extends ReactContextBaseJavaModule{
   }
 
   private void registerWeibo() {
-    if (shareHandler == null) {
+    if (mWBAPI == null) {
       String redirectURI = "https://api.weibo.com/oauth2/default.html";
       String scope = "all";
-      final AuthInfo sinaAuthInfo = new AuthInfo(getReactApplicationContext(), this.weiboAppId, redirectURI, scope);
-      WbSdk.install(getCurrentActivity(), sinaAuthInfo);
-      shareHandler = new WbShareHandler(getCurrentActivity());
-      shareHandler.registerApp();
+      AuthInfo authInfo = new AuthInfo(getReactApplicationContext(), this.weiboAppId, redirectURI, scope);
+//      WbSdk.install(getCurrentActivity(), sinaAuthInfo);
+//      shareHandler = new WbShareHandler(getCurrentActivity());
+//      shareHandler.registerApp();
+      mWBAPI = WBAPIFactory.createWBAPI(mContext);
+      mWBAPI.registerApp(mContext, authInfo, new SdkListener() {
+        @Override
+        public void onInitSuccess() {
+
+        }
+
+        @Override
+        public void onInitFailure(Exception e) {
+
+        }
+      });
     }
   }
 
@@ -142,7 +155,7 @@ public class AppShareModule extends ReactContextBaseJavaModule{
   @ReactMethod
   public void isWeiboInstalled(Promise promise) {
     registerWeibo();
-    if (WbSdk.isWbInstall(mContext)) {
+    if (mWBAPI.isWBAppInstalled()) {
       promise.resolve(true);
     } else {
       promise.reject("not installed");
@@ -208,9 +221,25 @@ public class AppShareModule extends ReactContextBaseJavaModule{
         weiboMessage.mediaObject.title = data.getString(RCTShareTitle);
         weiboMessage.textObject.text = weiboMessage.mediaObject.title;
       }
-      weiboMessage.mediaObject.setThumbImage(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_logo));
+      Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_logo);
+      ByteArrayOutputStream os = null;
+      try {
+        os = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, os);
+        webpageObject.thumbData = os.toByteArray();
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (os != null) {
+            os.close();
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        } }
       weiboMessage.mediaObject.identify = new Date().toString();
-      shareHandler.shareMessage(weiboMessage, true);
+//      shareHandler.shareMessage(weiboMessage, true);
+      mWBAPI.shareMessage(getCurrentActivity(), weiboMessage, true);
     }
     UiThreadUtil.runOnUiThread(
       new Runnable() {
